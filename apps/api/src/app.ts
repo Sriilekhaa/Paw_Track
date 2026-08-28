@@ -4,6 +4,7 @@ import helmet from "helmet";
 import authRoutes from "./routes/authRoutes.js";
 import protectedRoutes from "./routes/protectedRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 import { apiRateLimiter } from "./middleware/rateLimiter.js";
 
 const app: Express = express();
@@ -30,12 +31,14 @@ app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
     service: "PAW TRACK API",
+    version: "1.0.0",
     timestamp: new Date().toISOString(),
   });
 });
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/uploads", uploadRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api", protectedRoutes);
 

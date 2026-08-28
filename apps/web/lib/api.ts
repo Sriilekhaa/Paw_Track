@@ -85,7 +85,14 @@ class ApiClient {
   public async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<{ success: boolean; data?: T; message?: string; error?: any }> {
+  ): Promise<{
+    success: boolean;
+    data?: T;
+    message?: string;
+    errors?: Record<string, string[]>;
+    code?: string;
+    error?: any;
+  }> {
     const url = endpoint.startsWith("http")
       ? endpoint
       : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;

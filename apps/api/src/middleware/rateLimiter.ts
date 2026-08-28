@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import { Request, Response } from "express";
 
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -19,5 +20,27 @@ export const apiRateLimiter = rateLimit({
   message: {
     success: false,
     message: "Rate limit exceeded. Please slow down your requests.",
+  },
+});
+
+/**
+ * Strict per-user rate limiter for report submissions (max 10 submissions/hour/user)
+ */
+export const reportSubmissionLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 10, // 10 report submissions per user per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request): string => {
+    return req.user?.id || req.ip || "anonymous";
+  },
+  handler: (_req: Request, res: Response): void => {
+    res.status(429).json({
+      success: false,
+      code: "RATE_LIMIT_EXCEEDED",
+      message:
+        "Report submission limit reached. You may submit a maximum of 10 incident reports per hour to prevent spam.",
+      retryAfter: "60 minutes",
+    });
   },
 });

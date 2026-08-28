@@ -120,7 +120,7 @@ npm run dev:web   # Next.js App at http://localhost:3000
 ## 📋 Multi-Step Roadmap
 
 - [x] **Step 1 (Foundation):** Monorepo setup, Mongoose schemas (User & Report), JWT Auth with refresh token rotation, Express RBAC, Next.js 15 UI shells matching Stitch designs.
-- [ ] **Step 2 (Report Submission & Media Pipeline):** Full incident submission flow, Cloudinary/S3 image uploads, Geocoding integration.
+- [x] **Step 2 (Report Submission & Media Pipeline):** Cloudinary photo uploads (free-tier with 1-retry fallback), Multer 5MB/MIME validation, Zod validation & XSS sanitization, 2dsphere spatial nearby search, per-user rate limiting (10/hr), server-side RBAC, real-time citizen portal integration, and 13 Jest/Supertest automated tests.
 - [ ] **Step 3 (Field Dispatch & Live Status Workflow):** Real-time Socket.io dispatch updates, SLA timer calculations, Field Worker case updates.
 - [ ] **Step 4 (NLP & AI Service):** Python/FastAPI microservice with RoBERTa/Transformers for automated triage, duplicate detection, and image analysis.
 - [ ] **Step 5 (Admin Analytics & Public Reporting):** Live Heatmap aggregation, export pipelines (CSV/PDF), and Public Transparency portal.
