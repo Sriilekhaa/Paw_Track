@@ -1,0 +1,26 @@
+{
+  "name": "paw-track-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PAW TRACK (CivicPaws) - Urban Animal Welfare & Public Safety Platform",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "keywords": [
+    "animal-welfare",
+    "public-safety",
+    "civic-tech",
+    "nextjs",
+    "express",
+    "mongodb"
+  ],
+  "author": "PAW TRACK Team",
+  "license": "ISC"
+}
