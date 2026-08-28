@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "CivicPaws | Urban Animal Welfare & Public Safety Platform",
+  title: "PawTrack | Urban Animal Welfare & Public Safety Platform",
   description:
     "A modern, transparent platform connecting citizens, municipal services, and local organizations to protect and support our city's animals.",
 };

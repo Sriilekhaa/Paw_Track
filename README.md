@@ -1,7 +1,7 @@
-# PAW TRACK (CivicPaws) 🐾
+# PawTrack 🐾
 ### Urban Animal Welfare & Public Safety Platform
 
-PAW TRACK is a multi-species urban animal welfare and municipal public safety platform connecting citizens, field response units, veterinary partners, and municipal administrators.
+PawTrack is a multi-species urban animal welfare and municipal public safety platform connecting citizens, field response units, veterinary partners, and municipal administrators.
 
 ---
 

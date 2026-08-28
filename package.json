@@ -2,7 +2,7 @@
   "name": "paw-track-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "PAW TRACK (CivicPaws) - Urban Animal Welfare & Public Safety Platform",
+  "description": "PawTrack - Urban Animal Welfare & Public Safety Platform",
   "workspaces": [
     "apps/*"
   ],

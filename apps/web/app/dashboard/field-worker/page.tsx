@@ -164,7 +164,7 @@ export default function FieldWorkerDashboardPage() {
                             14:32 — Citizen Reporter
                           </p>
                           <p className="text-xs text-slate-600 mt-0.5">
-                            Initial incident report created via CivicPaws mobile portal.
+                            Initial incident report created via PawTrack mobile portal.
                           </p>
                         </div>
                       </div>

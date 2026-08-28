@@ -271,7 +271,7 @@ export default function CitizenDashboardPage() {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-teal-950 tracking-tight">
-                    Welcome to CivicPaws Reporting, {user?.name.split(" ")[0]}
+                    Welcome to PawTrack Reporting, {user?.name.split(" ")[0]}
                   </h2>
                   <p className="text-xs sm:text-sm text-teal-900/80 mt-1 leading-relaxed">
                     Your reports help ensure the safety and welfare of urban animals.

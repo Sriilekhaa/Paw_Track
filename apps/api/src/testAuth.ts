@@ -12,7 +12,7 @@ async function testAuthLogic() {
   console.log(`✓ Password Hashing & Verification: ${isMatch ? "PASSED" : "FAILED"}`);
 
   // 2. Test Access Token
-  const accessPayload = { id: "user123", email: "officer@civicpaws.org", role: "field_worker" as const };
+  const accessPayload = { id: "user123", email: "officer@pawtrack.org", role: "field_worker" as const };
   const accessToken = generateAccessToken(accessPayload);
   const decodedAccess = verifyAccessToken(accessToken);
   console.log(`✓ Access Token Sign & Verify: ${decodedAccess.email === accessPayload.email && decodedAccess.role === "field_worker" ? "PASSED" : "FAILED"}`);

@@ -187,7 +187,7 @@ export default function LandingPage() {
                 Multi-Role Platform Access
               </h2>
               <p className="text-slate-300 text-sm mt-2">
-                Experience CivicPaws through each stakeholder viewpoint with
+                Experience PawTrack through each stakeholder viewpoint with
                 distinct role-gated interfaces.
               </p>
             </div>

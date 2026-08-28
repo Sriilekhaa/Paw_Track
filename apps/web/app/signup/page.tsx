@@ -42,7 +42,7 @@ export default function SignUpPage() {
             <PawPrint className="w-6 h-6" />
           </div>
           <span className="font-bold text-2xl text-teal-900 tracking-tight">
-            Civic<span className="text-teal-600">Paws</span>
+            Paw<span className="text-teal-600">Track</span>
           </span>
         </Link>
         <h2 className="mt-4 text-2xl font-extrabold text-slate-900 tracking-tight">

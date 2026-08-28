@@ -95,14 +95,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       citizen: {
         id: "demo-citizen-id-01",
         name: "Jane Doe (Citizen)",
-        email: "citizen@civicpaws.org",
+        email: "citizen@pawtrack.org",
         role: "citizen",
         createdAt: new Date().toISOString(),
       },
       field_worker: {
         id: "demo-field-id-02",
         name: "Officer Alex Rivera (Unit 402)",
-        email: "officer.rivera@civicpaws.org",
+        email: "officer.rivera@pawtrack.org",
         role: "field_worker",
         organization: "Northside Animal Care Unit",
         createdAt: new Date().toISOString(),
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       admin: {
         id: "demo-admin-id-03",
         name: "Dr. Sarah Chen (Chief Admin)",
-        email: "admin@civicpaws.org",
+        email: "admin@pawtrack.org",
         role: "admin",
         organization: "Municipal Animal Welfare Division",
         createdAt: new Date().toISOString(),

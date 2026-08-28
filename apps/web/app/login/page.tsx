@@ -52,7 +52,7 @@ export default function LoginPage() {
             <PawPrint className="w-6 h-6" />
           </div>
           <span className="font-bold text-2xl text-teal-900 tracking-tight">
-            Civic<span className="text-teal-600">Paws</span>
+            Paw<span className="text-teal-600">Track</span>
           </span>
         </Link>
         <h2 className="mt-4 text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -128,7 +128,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@civicpaws.org"
+                  placeholder="name@pawtrack.org"
                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600"
                 />
               </div>

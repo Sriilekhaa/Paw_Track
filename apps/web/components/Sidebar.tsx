@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <PawPrint className="w-5 h-5 text-slate-950" />
           </div>
           <span className="font-bold text-2xl text-teal-400 tracking-tight">
-            Civic<span className="text-white">Paws</span>
+            Paw<span className="text-white">Track</span>
           </span>
         </Link>
 
