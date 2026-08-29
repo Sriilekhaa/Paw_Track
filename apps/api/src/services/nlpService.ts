@@ -97,18 +97,32 @@ export class NLPService {
       return;
     }
 
+    // In test environment or disconnected DB, avoid running background queue
+    const mongoose = await import("mongoose");
+    if (mongoose.default.connection.readyState !== 1) {
+      this.queue = [];
+      return;
+    }
+
     this.isProcessing = true;
     while (this.queue.length > 0) {
       const reportId = this.queue.shift();
       if (!reportId) continue;
 
+      if (mongoose.default.connection.readyState !== 1) {
+        this.queue = [];
+        break;
+      }
+
       try {
         await this.enrichReport(reportId);
       } catch (err) {
-        console.warn(
-          `[NLP Service] Asynchronous enrichment failed for report ${reportId}:`,
-          (err as Error).message
-        );
+        if (process.env.NODE_ENV !== "test") {
+          console.warn(
+            `[NLP Service] Asynchronous enrichment failed for report ${reportId}:`,
+            (err as Error).message
+          );
+        }
       }
     }
     this.isProcessing = false;
@@ -235,6 +249,38 @@ export class NLPService {
       console.log(
         `✅ [NLP Service] Successfully enriched Report #${report._id} with AI Insights (Urgency: ${report.urgencyScore}/100)`
       );
+
+      // Emit real-time Socket.IO events for live dashboard updates
+      try {
+        const { emitSocketEvent } = await import("../config/socket.js");
+        emitSocketEvent("report:classified", {
+          reportId: report._id,
+          status: "classified",
+          urgencyScore: report.urgencyScore,
+          category: report.category,
+          species: report.species,
+          report,
+        });
+
+        // High urgency critical alert broadcast (Urgency >= 70)
+        if (report.urgencyScore && report.urgencyScore >= 70) {
+          emitSocketEvent(
+            "report:emergency_alert",
+            {
+              reportId: report._id,
+              urgencyScore: report.urgencyScore,
+              title: `High-Urgency ${report.species.toUpperCase()} ${report.category.toUpperCase()}`,
+              description: report.description,
+              location: report.location.address,
+              report,
+            },
+            "role:admin"
+          );
+        }
+      } catch (socketErr) {
+        // Socket emission failure shouldn't crash worker
+      }
+
       return true;
     }
 

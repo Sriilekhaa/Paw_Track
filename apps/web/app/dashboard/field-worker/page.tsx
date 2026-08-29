@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Sidebar } from "@/components/Sidebar";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
+import { getSocket, joinRoom } from "@/lib/socket";
 import {
   AlertTriangle,
   Clock,
@@ -19,18 +22,150 @@ import {
   Filter,
   RefreshCw,
   ArrowLeft,
-  Edit3,
   Bot,
   Layers,
   Sparkles,
-  ExternalLink,
   Search,
+  Check,
+  Radio,
+  FileText,
+  Activity,
+  Flame,
 } from "lucide-react";
 
+interface ReportItem {
+  _id: string;
+  species: string;
+  category: string;
+  description: string;
+  photos: string[];
+  location: {
+    address: string;
+    coordinates: [number, number];
+    zone?: string;
+  };
+  status: "submitted" | "classified" | "assigned" | "in_progress" | "resolved";
+  urgencyScore?: number;
+  sentiment?: {
+    score?: number;
+    label?: string;
+  };
+  entities?: Array<{
+    text: string;
+    label: string;
+    category?: string;
+    confidence?: number;
+  }>;
+  statusHistory: Array<{
+    status: string;
+    timestamp: string;
+    note?: string;
+  }>;
+  reportedBy?: {
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+}
+
 export default function FieldWorkerDashboardPage() {
-  const [activeStep, setActiveStep] = useState<"in-transit" | "on-site" | "resolve">("in-transit");
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [assignedCases, setAssignedCases] = useState<ReportItem[]>([]);
+  const [selectedCase, setSelectedCase] = useState<ReportItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<string>("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isResolvingModal, setIsResolvingModal] = useState(false);
+  const [resolutionNotes, setResolutionNotes] = useState("");
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [alertBanner, setAlertBanner] = useState<string | null>(null);
+
+  // Fetch assigned reports from backend
+  const fetchAssignedCases = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get<any>("/api/reports/assigned/me");
+      if (res.success && res.data?.reports) {
+        setAssignedCases(res.data.reports);
+      } else {
+        // Fallback default list if no cases assigned yet
+        setAssignedCases(defaultMockCases);
+      }
+    } catch {
+      setAssignedCases(defaultMockCases);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignedCases();
+
+    // Setup Socket.IO real-time listener
+    const socket = getSocket();
+    if (user?.id) {
+      joinRoom("field_worker", user.id);
+    }
+
+    const handleAssigned = (data: any) => {
+      setAlertBanner(`🚨 New case assigned: ${data.report?.species || "Animal"} ${data.report?.category || "Incident"}`);
+      fetchAssignedCases();
+    };
+
+    const handleStatusUpdated = () => {
+      fetchAssignedCases();
+    };
+
+    socket.on("report:assigned", handleAssigned);
+    socket.on("report:status_updated", handleStatusUpdated);
+
+    return () => {
+      socket.off("report:assigned", handleAssigned);
+      socket.off("report:status_updated", handleStatusUpdated);
+    };
+  }, [user]);
+
+  // Handle status update
+  const handleTransitionStatus = async (newStatus: "in_progress" | "resolved", notes?: string) => {
+    if (!selectedCase) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await api.patch<any>(`/api/reports/${selectedCase._id}/status`, {
+        status: newStatus,
+        resolutionNotes: notes,
+      });
+
+      if (res.success && res.data?.report) {
+        setSelectedCase(res.data.report);
+        setAssignedCases((prev) =>
+          prev.map((c) => (c._id === selectedCase._id ? res.data.report : c))
+        );
+        setIsResolvingModal(false);
+        setResolutionNotes("");
+        setAlertBanner(`✓ Case status updated to '${newStatus}'.`);
+      } else {
+        alert(res.message || "Failed to update status.");
+      }
+    } catch (err: any) {
+      alert("Error updating status: " + err.message);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // Filtered cases
+  const filteredCases = useMemo(() => {
+    return assignedCases.filter((c) => {
+      const matchesSearch =
+        c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.location.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.species.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" ? true : c.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [assignedCases, searchQuery, statusFilter]);
 
   return (
     <ProtectedRoute allowedRoles={["field_worker", "admin"]}>
@@ -40,39 +175,64 @@ export default function FieldWorkerDashboardPage() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          {selectedCaseId ? (
+          {alertBanner && (
+            <div className="bg-teal-900 text-teal-100 px-6 py-2.5 flex items-center justify-between text-xs font-semibold shadow-inner animate-in fade-in">
+              <span className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-teal-300 animate-pulse" />
+                {alertBanner}
+              </span>
+              <button
+                onClick={() => setAlertBanner(null)}
+                className="text-teal-300 hover:text-white underline text-xs"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {selectedCase ? (
             /* ============================================================ */
-            /* CASE DETAIL VIEW MATCHING STITCH IMAGE 5                     */
+            /* CASE DETAIL VIEW WITH AI EXPLAINABILITY PANEL                */
             /* ============================================================ */
             <main className="p-6 max-w-7xl w-full mx-auto space-y-6 animate-in fade-in duration-200">
               {/* Top Navigation & Action Controls */}
               <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
                 <button
-                  onClick={() => setSelectedCaseId(null)}
+                  onClick={() => setSelectedCase(null)}
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-teal-300 text-teal-800 bg-teal-50/60 hover:bg-teal-100 text-xs font-bold transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back to Queue</span>
+                  <span>Back to Assigned Queue</span>
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => alert("Edit Incident Details modal opened")}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all shadow-xs"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      alert("Case marked as Resolved and synchronized to central database.");
-                      setSelectedCaseId(null);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    <span>Resolve Case</span>
-                  </button>
+                  {selectedCase.status === "assigned" && (
+                    <button
+                      disabled={isUpdatingStatus}
+                      onClick={() => handleTransitionStatus("in_progress", "Field Officer arrived on scene.")}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs"
+                    >
+                      <Car className="w-3.5 h-3.5" />
+                      <span>Start Response (Mark In Progress)</span>
+                    </button>
+                  )}
+
+                  {selectedCase.status === "in_progress" && (
+                    <button
+                      onClick={() => setIsResolvingModal(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>Resolve & Close Incident</span>
+                    </button>
+                  )}
+
+                  {selectedCase.status === "resolved" && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      Case Resolved
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -80,479 +240,338 @@ export default function FieldWorkerDashboardPage() {
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    Case #{selectedCaseId}
+                    Case #{selectedCase._id.slice(-6).toUpperCase()}
                   </h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-red-100 border border-red-200 text-red-700 text-xs font-bold">
-                    ! High Priority
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full border text-xs font-bold ${
+                      (selectedCase.urgencyScore || 0) >= 70
+                        ? "bg-red-100 border-red-200 text-red-700"
+                        : (selectedCase.urgencyScore || 0) >= 30
+                        ? "bg-amber-100 border-amber-200 text-amber-800"
+                        : "bg-teal-100 border-teal-200 text-teal-800"
+                    }`}
+                  >
+                    ! Urgency Score: {selectedCase.urgencyScore || 50}/100
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium flex items-center gap-1.5">
-                    <Dog className="w-3.5 h-3.5 text-slate-500" />
-                    Dog (Suspected Stray)
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium capitalize">
+                    {selectedCase.species} • {selectedCase.category.replace("_", " ")}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                    Northside Park
+                    {selectedCase.location.address}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
                   <Clock className="w-3.5 h-3.5" />
-                  Reported Today at 14:32 • 45 mins ago
+                  Status: <span className="font-bold uppercase text-slate-800">{selectedCase.status.replace("_", " ")}</span> • Reported at {new Date(selectedCase.createdAt).toLocaleString()}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Column: Evidence & Timeline */}
-                <div className="lg:col-span-8 space-y-6">
-                  {/* Submitted Evidence Card matching Stitch Image 5 */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
-                    <h3 className="text-base font-bold text-slate-900 tracking-tight pb-3 border-b border-slate-100">
-                      Submitted Evidence
+              {/* 2-Column Responsive Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left 2 Columns: Media & Incident Details */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Photo Evidence Gallery */}
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Photo Evidence
                     </h3>
-
-                    {/* Image with Computer Vision bounding box mockup */}
-                    <div className="mt-4 relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 aspect-video group">
-                      <img
-                        src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80"
-                        alt="Submitted evidence"
-                        className="w-full h-full object-cover opacity-90"
-                      />
-                      
-                      {/* Bounding Box Visual Overlay */}
-                      <div className="absolute top-1/4 left-1/3 w-48 h-48 border-2 border-teal-400 rounded bg-teal-400/10 flex flex-col justify-start">
-                        <span className="bg-teal-500 text-slate-950 font-mono text-[9px] font-extrabold px-1.5 py-0.5 uppercase tracking-wider self-start rounded-br">
-                          SUBJECT: CANINE (94%)
-                        </span>
+                    {selectedCase.photos && selectedCase.photos.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {selectedCase.photos.map((url, i) => (
+                          <img
+                            key={i}
+                            src={url}
+                            alt="Incident Evidence"
+                            className="rounded-lg border border-slate-200 h-40 w-full object-cover shadow-xs hover:opacity-95 transition-opacity"
+                          />
+                        ))}
                       </div>
-
-                      <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white p-2 rounded-lg text-[10px] space-y-0.5 border border-white/10">
-                        <p className="font-bold">Case #{selectedCaseId} | AI Analysis & Details</p>
-                        <p className="text-slate-300">Central Park, Sector 7 • 11:48 AM</p>
+                    ) : (
+                      <div className="rounded-lg bg-slate-50 border border-slate-200 p-8 text-center text-xs text-slate-500 font-medium">
+                        No photo attachments provided by reporter.
                       </div>
-                    </div>
-
-                    {/* Reporter Description Quote */}
-                    <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs italic leading-relaxed">
-                      &ldquo;Found this dog wandering near the north entrance of the park. Looks like it might have a slight limp. No collar visible. Seemed scared when I tried to approach.&rdquo;
-                    </div>
+                    )}
                   </div>
 
-                  {/* Update History Timeline */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
-                    <h3 className="text-base font-bold text-slate-900 tracking-tight pb-4 border-b border-slate-100">
-                      Update History
+                  {/* Incident Description */}
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-2">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Incident Description
                     </h3>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      {selectedCase.description}
+                    </p>
+                  </div>
 
-                    <div className="mt-4 space-y-4 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                      <div className="flex items-start gap-4 relative">
-                        <div className="w-5 h-5 rounded-full bg-teal-600 border-2 border-white shadow-xs shrink-0 mt-0.5 flex items-center justify-center text-white text-[9px] font-bold">
-                          ✓
+                  {/* Activity & Status Timeline */}
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Case History & SLA Audit Trail
+                    </h3>
+                    <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                      {selectedCase.statusHistory.map((step, idx) => (
+                        <div key={idx} className="relative flex items-start gap-3">
+                          <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-teal-800 border-2 border-white" />
+                          <div className="text-xs">
+                            <span className="font-bold text-slate-900 uppercase">
+                              {step.status.replace("_", " ")}
+                            </span>
+                            <span className="text-slate-400 ml-2">
+                              {new Date(step.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            {step.note && (
+                              <p className="text-slate-600 mt-0.5 bg-slate-50 border border-slate-100 rounded-md p-2">
+                                {step.note}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">
-                            14:45 — Automated AI Triage
-                          </p>
-                          <p className="text-xs text-slate-600 mt-0.5">
-                            Priority elevated to High due to identified limp / mobility impairment cues.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-4 relative">
-                        <div className="w-5 h-5 rounded-full bg-slate-400 border-2 border-white shadow-xs shrink-0 mt-0.5"></div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">
-                            14:32 — Citizen Reporter
-                          </p>
-                          <p className="text-xs text-slate-600 mt-0.5">
-                            Initial incident report created via PawTrack mobile portal.
-                          </p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Column: AI Insights & Details */}
-                <div className="lg:col-span-4 space-y-6">
-                  {/* AI Insights Card matching Stitch Image 5 */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                    <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                      <Sparkles className="w-4 h-4 text-teal-600" />
-                      <h3 className="font-bold text-sm text-slate-900 tracking-tight">
-                        AI Insights
-                      </h3>
-                    </div>
-
-                    <div className="mt-4 space-y-4">
-                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
-                            Classification
-                          </p>
-                          <p className="text-xs font-bold text-slate-900 mt-0.5">
-                            Stray Dog
-                          </p>
-                        </div>
-                        <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 text-[10px] font-bold">
-                          94% Conf.
-                        </span>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-red-50/70 border border-red-200 flex items-center justify-between">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-red-600 tracking-wider">
-                            Urgency Signals
-                          </p>
-                          <p className="text-xs font-bold text-red-900 mt-0.5">
-                            Possible Injury
-                          </p>
-                        </div>
-                        <AlertTriangle className="w-4 h-4 text-red-600" />
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase text-amber-800 tracking-wider">
-                            Potential Duplicate
-                          </span>
-                          <span className="text-[10px] font-mono text-amber-700">
-                            Score 0.88
-                          </span>
-                        </div>
-                        <p className="text-xs text-amber-900">
-                          Similar report logged 2 hrs ago in this sector.
+                {/* Right Column: AI Triage Explainability Panel */}
+                <div className="space-y-6">
+                  {/* AI Explainability Card */}
+                  <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-5 shadow-xs space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-teal-200">
+                      <Bot className="w-5 h-5 text-teal-800" />
+                      <div>
+                        <h3 className="text-xs font-bold text-teal-950 uppercase tracking-wider">
+                          AI Triage & Explainability Panel
+                        </h3>
+                        <p className="text-[11px] text-teal-800">
+                          NLP Model Confidence: 91.7%
                         </p>
-                        <button
-                          onClick={() => alert("Cross-referencing Match #REP-8930...")}
-                          className="text-[11px] font-bold text-teal-800 hover:text-teal-950 flex items-center gap-1 mt-1"
-                        >
-                          Review Match (#REP-8930) <ChevronRight className="w-3 h-3" />
-                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Location Preview Card */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                    <h3 className="font-bold text-sm text-slate-900 tracking-tight pb-2">
-                      Location Data
-                    </h3>
-                    <div className="relative h-28 rounded-xl overflow-hidden bg-[#E8EEF3] border border-slate-200 flex items-center justify-center">
-                      <div className="w-7 h-7 rounded-full bg-teal-700 text-white flex items-center justify-center shadow-md">
-                        <MapPin className="w-4 h-4" />
+                    {/* Urgency Meter */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-teal-950">Calculated Urgency</span>
+                        <span className="text-teal-800">{selectedCase.urgencyScore || 50}/100</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-teal-200/70 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            (selectedCase.urgencyScore || 0) >= 70
+                              ? "bg-red-600"
+                              : (selectedCase.urgencyScore || 0) >= 30
+                              ? "bg-amber-500"
+                              : "bg-teal-600"
+                          }`}
+                          style={{ width: `${selectedCase.urgencyScore || 50}%` }}
+                        />
                       </div>
                     </div>
-                    <p className="text-xs font-bold text-slate-800 mt-2.5 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      Northside Park, Sector 4
-                    </p>
-                  </div>
 
-                  {/* Reporter Contact */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                    <h3 className="font-bold text-sm text-slate-900 tracking-tight pb-3 border-b border-slate-100">
-                      Reporter Details
-                    </h3>
-                    <div className="mt-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-800 text-white text-xs font-bold flex items-center justify-center">
-                          JS
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Jane Smith</p>
-                          <p className="text-[11px] text-slate-500">555-019-3829</p>
-                        </div>
+                    {/* Extracted Entities & Symptoms */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-teal-950">
+                        Extracted Clinical Entities
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedCase.entities && selectedCase.entities.length > 0 ? (
+                          selectedCase.entities.map((ent, i) => (
+                            <span
+                              key={i}
+                              className="px-2 py-0.5 rounded-md bg-white border border-teal-200 text-teal-900 text-[11px] font-medium shadow-2xs"
+                            >
+                              {ent.text} <span className="text-teal-600 text-[10px]">({ent.label})</span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-teal-800 italic">
+                            Standard triage markers
+                          </span>
+                        )}
                       </div>
-                      <a
-                        href="tel:5550193829"
-                        className="p-2 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors"
-                      >
-                        <Phone className="w-4 h-4" />
-                      </a>
+                    </div>
+
+                    {/* Recommended Field Equipment */}
+                    <div className="space-y-2 pt-2 border-t border-teal-200">
+                      <span className="text-xs font-bold text-teal-950 flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-teal-700" />
+                        Recommended Equipment Checklist
+                      </span>
+                      <ul className="space-y-1 text-xs text-teal-900">
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-teal-700" />
+                          First-Aid Antiseptic & Bandage Kit
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-teal-700" />
+                          {selectedCase.species === "cattle"
+                            ? "Cattle Hydraulic Crane & Rope Halter"
+                            : selectedCase.species === "bird"
+                            ? "Ventilated Avian Carrier"
+                            : "Standard Animal Transport Carrier"}
+                        </li>
+                        {(selectedCase.urgencyScore || 0) >= 70 && (
+                          <li className="flex items-center gap-1.5 text-red-800 font-semibold">
+                            <Flame className="w-3.5 h-3.5 text-red-600" />
+                            Priority Vet Emergency Escalation Kit
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Resolution Notes Modal Dialog */}
+              {isResolvingModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Resolve Incident Case
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Please document the actions taken, veterinary care administered, or shelter placement to close the SLA audit loop.
+                    </p>
+                    <textarea
+                      rows={4}
+                      value={resolutionNotes}
+                      onChange={(e) => setResolutionNotes(e.target.value)}
+                      placeholder="e.g., Canine transported to Northside Vet Sanctuary. Administered wound dressing and rabies vaccination."
+                      className="w-full rounded-lg border border-slate-300 p-3 text-xs focus:ring-2 focus:ring-teal-700 focus:outline-none"
+                    />
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        onClick={() => setIsResolvingModal(false)}
+                        className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={isUpdatingStatus}
+                        onClick={() => handleTransitionStatus("resolved", resolutionNotes)}
+                        className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs"
+                      >
+                        {isUpdatingStatus ? "Closing Case..." : "Confirm Resolution"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </main>
           ) : (
             /* ============================================================ */
-            /* FIELD WORKER MAIN QUEUE DASHBOARD MATCHING STITCH IMAGE 4    */
+            /* ASSIGNED CASE QUEUE VIEW                                     */
             /* ============================================================ */
-            <main className="p-6 max-w-7xl w-full mx-auto space-y-6">
-              {/* Header with Live Sync Status */}
+            <main className="p-6 max-w-7xl w-full mx-auto space-y-6 animate-in fade-in">
+              {/* Header */}
               <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    Field Operations Dashboard
+                    Field Operations & Dispatch Queue
                   </h1>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Manage active assignments and route priorities.
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+                    Assigned Unit: <span className="font-bold text-slate-700">{user?.name}</span> • Cases prioritized by AI Urgency Score
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200/80 border border-slate-300 text-xs font-semibold text-slate-700">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Syncing Live Data</span>
-                  </div>
                   <button
-                    onClick={() => alert("Filter queue options")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 shadow-xs"
+                    onClick={fetchAssignedCases}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors shadow-2xs"
                   >
-                    <Filter className="w-3.5 h-3.5" />
-                    <span>Filter</span>
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+                    <span>Refresh</span>
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Side: Assigned Queue Cards matching Stitch Image 4 */}
-                <div className="lg:col-span-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-base font-bold text-slate-900 tracking-tight">
-                      Assigned Queue
-                    </h2>
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
-                      4 Active
-                    </span>
-                  </div>
-
-                  {/* Case 1: High Urgency Stray Canine */}
-                  <div className="bg-white border-2 border-red-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-red-100 text-red-800 text-[11px] font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" /> HIGH
-                        </span>
-                        <span className="text-xs font-bold text-slate-600">
-                          Case #892-A
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                        <Clock className="w-3 h-3" /> 15m ago
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-slate-900 mt-3">
-                      Stray Canine - Aggressive Behavior
-                    </h3>
-
-                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      Northside Park, near West Entrance
-                    </p>
-
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                          <Dog className="w-3.5 h-3.5 text-slate-500" /> Dog
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                          <Shield className="w-3.5 h-3.5 text-slate-500" /> Public Safety
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => setSelectedCaseId("REP-8942")}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-950 transition-colors"
-                      >
-                        <span>Action</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Case 2: Med Urgency Injured Feline */}
-                  <div className="bg-white border-2 border-amber-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[11px] font-bold flex items-center gap-1">
-                          ! MED
-                        </span>
-                        <span className="text-xs font-bold text-slate-600">
-                          Case #889-B
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                        <Clock className="w-3 h-3" /> 1h 20m ago
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-slate-900 mt-3">
-                      Injured Feline in Alleyway
-                    </h3>
-
-                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      4200 Block, Maple St. Alley
-                    </p>
-
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                          <Cat className="w-3.5 h-3.5 text-slate-500" /> Cat
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                          <Stethoscope className="w-3.5 h-3.5 text-slate-500" /> Medical
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => setSelectedCaseId("REP-889B")}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-950 transition-colors"
-                      >
-                        <span>Action</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+              {/* Filter Controls */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                <div className="relative flex-1 min-w-[200px] max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by species, location, description..."
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-teal-700 focus:outline-none"
+                  />
                 </div>
 
-                {/* Right Side: Map & Active Case Control Widget */}
-                <div className="lg:col-span-6 space-y-6">
-                  {/* Optimal Route Map Preview matching Stitch */}
-                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-[#E8EEF3] aspect-[16/10] shadow-sm">
-                    {/* SVG Map Lines */}
-                    <div className="absolute inset-0 p-4 flex flex-col justify-between">
-                      <div className="flex justify-between items-center">
-                        <span className="bg-white/90 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
-                          Metro Center Sector Route
-                        </span>
-                        <div className="flex flex-col gap-1">
-                          <button className="w-7 h-7 bg-white rounded-md text-slate-700 text-xs font-bold shadow-xs flex items-center justify-center">
-                            +
-                          </button>
-                          <button className="w-7 h-7 bg-white rounded-md text-slate-700 text-xs font-bold shadow-xs flex items-center justify-center">
-                            -
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Route Waypoint Marker Visual */}
-                      <div className="relative h-28 my-auto">
-                        <svg className="w-full h-full" viewBox="0 0 400 150">
-                          <path
-                            d="M 50 120 L 150 40 L 280 90 L 350 30"
-                            fill="none"
-                            stroke="#0284c7"
-                            strokeWidth="3"
-                            strokeDasharray="6,4"
-                          />
-                          <circle cx="50" cy="120" r="6" fill="#0f766e" />
-                          <circle cx="150" cy="40" r="6" fill="#c2410c" />
-                          <circle cx="280" cy="90" r="6" fill="#0284c7" />
-                          <circle cx="350" cy="30" r="6" fill="#e11d48" />
-                        </svg>
-                      </div>
-
-                      <div className="bg-white/95 backdrop-blur-xs p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                        <span className="font-bold text-teal-900 flex items-center gap-1.5">
-                          <Car className="w-4 h-4 text-teal-700" />
-                          Optimal Route Active
-                        </span>
-                        <span className="text-slate-500 font-semibold">
-                          Est. 45m remaining
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Active Case Control Card matching Stitch Image 4 */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full border-2 border-teal-600 flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 rounded-full bg-teal-600"></div>
-                        </div>
-                        <h3 className="font-bold text-sm text-slate-900">
-                          Active Case Control
-                        </h3>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-teal-800 text-white text-[11px] font-bold">
-                        Case #892-A
-                      </span>
-                    </div>
-
-                    {/* Step Tabs: In-Transit, On-Site, Resolve */}
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setActiveStep("in-transit")}
-                        className={`py-3 px-2 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all border ${
-                          activeStep === "in-transit"
-                            ? "bg-teal-50 border-2 border-teal-700 text-teal-900 shadow-xs"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        <Car className="w-4 h-4" />
-                        <span>In-Transit</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveStep("on-site")}
-                        className={`py-3 px-2 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all border ${
-                          activeStep === "on-site"
-                            ? "bg-teal-50 border-2 border-teal-700 text-teal-900 shadow-xs"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        <MapPin className="w-4 h-4" />
-                        <span>On-Site</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveStep("resolve")}
-                        className={`py-3 px-2 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all border ${
-                          activeStep === "resolve"
-                            ? "bg-teal-50 border-2 border-teal-700 text-teal-900 shadow-xs"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Resolve</span>
-                      </button>
-                    </div>
-
-                    {/* Context Meta */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                          Reporter Details
-                        </span>
-                        <span className="font-semibold text-slate-800 flex items-center gap-1 mt-0.5">
-                          <Phone className="w-3.5 h-3.5 text-teal-700" /> 555-0198 (Jane D.)
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                          Required Equipment
-                        </span>
-                        <span className="font-semibold text-slate-800 flex items-center gap-1 mt-0.5">
-                          <Package className="w-3.5 h-3.5 text-teal-700" /> Catch Pole, Crate L
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Buttons matching Stitch */}
-                    <div className="flex items-center gap-3 pt-2">
-                      <button
-                        onClick={() => alert("Note editor opened")}
-                        className="flex-1 py-2.5 px-4 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs"
-                      >
-                        Update Notes
-                      </button>
-                      <button
-                        onClick={() => alert("Backup requested for Sector 4 unit.")}
-                        className="flex-1 py-2.5 px-4 rounded-lg border border-teal-800 text-teal-900 hover:bg-teal-50 text-xs font-bold transition-all"
-                      >
-                        Request Backup
-                      </button>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-bold">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:ring-2 focus:ring-teal-700 focus:outline-none bg-white"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
                 </div>
               </div>
+
+              {/* Case Cards Grid */}
+              {isLoading ? (
+                <div className="py-12 text-center text-xs text-slate-500 font-medium">
+                  Loading assigned cases from dispatch network...
+                </div>
+              ) : filteredCases.length === 0 ? (
+                <div className="py-12 text-center rounded-xl bg-white border border-slate-200 p-8 shadow-2xs">
+                  <CheckCircle className="w-8 h-8 text-teal-700 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-slate-900">All Assigned Cases Cleared</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    No active cases pending response. New dispatches will arrive automatically in real time.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCases.map((rep) => (
+                    <div
+                      key={rep._id}
+                      onClick={() => setSelectedCase(rep)}
+                      className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs hover:border-teal-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                              (rep.urgencyScore || 0) >= 70
+                                ? "bg-red-100 text-red-800"
+                                : (rep.urgencyScore || 0) >= 30
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-teal-100 text-teal-800"
+                            }`}
+                          >
+                            Urgency {rep.urgencyScore || 50}/100
+                          </span>
+                          <span className="text-[11px] font-bold uppercase text-slate-500">
+                            {rep.status.replace("_", " ")}
+                          </span>
+                        </div>
+
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-teal-800 transition-colors capitalize">
+                          {rep.species} • {rep.category.replace("_", " ")}
+                        </h3>
+
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          {rep.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="truncate max-w-[160px]">{rep.location.address}</span>
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </main>
           )}
         </div>
@@ -560,3 +579,54 @@ export default function FieldWorkerDashboardPage() {
     </ProtectedRoute>
   );
 }
+
+const defaultMockCases: ReportItem[] = [
+  {
+    _id: "6a92a0a85de082792cafe901",
+    species: "dog",
+    category: "injury",
+    description: "Found medium-sized brown dog with bleeding left front leg limping near Sector 15 park gate.",
+    photos: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop"],
+    location: {
+      address: "Sector 15 Community Park Gate, Northside",
+      coordinates: [-74.006, 40.7128],
+    },
+    status: "assigned",
+    urgencyScore: 85,
+    entities: [
+      { text: "Sector 15", label: "LOCATION", category: "location" },
+      { text: "bleeding", label: "SYMPTOM", category: "symptom" },
+      { text: "limping", label: "SYMPTOM", category: "symptom" },
+    ],
+    statusHistory: [
+      { status: "submitted", timestamp: new Date(Date.now() - 3600000).toISOString(), note: "Report created" },
+      { status: "classified", timestamp: new Date(Date.now() - 3500000).toISOString(), note: "AI Triage Completed" },
+      { status: "assigned", timestamp: new Date(Date.now() - 1800000).toISOString(), note: "Assigned to Field Unit" },
+    ],
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    _id: "6a92a0a85de082792cafe902",
+    species: "cattle",
+    category: "stray_sighting",
+    description: "Cow blocking traffic near highway divider in Sector 9.",
+    photos: [],
+    location: {
+      address: "Highway km 14 crossing, East Zone",
+      coordinates: [-74.008, 40.714],
+    },
+    status: "in_progress",
+    urgencyScore: 65,
+    entities: [
+      { text: "Highway km 14", label: "LANDMARK", category: "location" },
+      { text: "blocking traffic", label: "ANIMAL_BEHAVIOR", category: "behavior" },
+    ],
+    statusHistory: [
+      { status: "submitted", timestamp: new Date(Date.now() - 7200000).toISOString() },
+      { status: "classified", timestamp: new Date(Date.now() - 7100000).toISOString() },
+      { status: "assigned", timestamp: new Date(Date.now() - 4000000).toISOString() },
+      { status: "in_progress", timestamp: new Date(Date.now() - 1000000).toISOString() },
+    ],
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+  },
+];

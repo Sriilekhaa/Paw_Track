@@ -31,7 +31,7 @@ const UserSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         "Please provide a valid email address",
       ],
     },
@@ -50,8 +50,7 @@ const UserSchema = new Schema<IUser>(
       default: "citizen",
     },
     organization: {
-      type: Schema.Types.ObjectId,
-      ref: "Organization",
+      type: Schema.Types.Mixed,
       required: false,
     },
     refreshToken: {

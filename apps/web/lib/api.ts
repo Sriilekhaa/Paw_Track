@@ -156,6 +156,14 @@ class ApiClient {
     });
   }
 
+  public patch<T = any>(endpoint: string, body: any, options?: RequestInit) {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  }
+
   public delete<T = any>(endpoint: string, options?: RequestInit) {
     return this.request<T>(endpoint, { ...options, method: "DELETE" });
   }
