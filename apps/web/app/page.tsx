@@ -402,14 +402,14 @@ const defaultFallbackStats: PublicStatsData = {
     { category: "roadkill", count: 7 },
   ],
   zoneHeatmap: [
-    { zoneName: "Central District", totalCases: 62, resolvedCases: 54, resolutionRate: 87, avgUrgencyScore: 58 },
-    { zoneName: "Northside Park Area", totalCases: 48, resolvedCases: 42, resolutionRate: 88, avgUrgencyScore: 64 },
-    { zoneName: "East Expressway Corridor", totalCases: 38, resolvedCases: 30, resolutionRate: 79, avgUrgencyScore: 72 },
-    { zoneName: "South Industrial Zone", totalCases: 24, resolvedCases: 19, resolutionRate: 79, avgUrgencyScore: 52 },
-    { zoneName: "Westside Residential Colony", totalCases: 13, resolvedCases: 11, resolutionRate: 85, avgUrgencyScore: 44 },
+    { zoneName: "Central Bengaluru (MG Road)", totalCases: 62, resolvedCases: 54, resolutionRate: 87, avgUrgencyScore: 58 },
+    { zoneName: "Northside Hebbal Zone", totalCases: 48, resolvedCases: 42, resolutionRate: 88, avgUrgencyScore: 64 },
+    { zoneName: "East Corridor (Indiranagar)", totalCases: 38, resolvedCases: 30, resolutionRate: 79, avgUrgencyScore: 72 },
+    { zoneName: "South Koramangala Hub", totalCases: 24, resolvedCases: 19, resolutionRate: 79, avgUrgencyScore: 52 },
+    { zoneName: "Westside Rajajinagar Colony", totalCases: 13, resolvedCases: 11, resolutionRate: 85, avgUrgencyScore: 44 },
   ],
   recentResolutions: [
-    { id: "CP-8291", species: "dog", category: "injury", zone: "Central District", resolvedAt: new Date().toISOString() },
-    { id: "CP-8290", species: "cattle", category: "roadkill", zone: "East Expressway Corridor", resolvedAt: new Date().toISOString() },
+    { id: "CP-8291", species: "dog", category: "injury", zone: "Central Bengaluru", resolvedAt: new Date().toISOString() },
+    { id: "CP-8290", species: "cattle", category: "roadkill", zone: "East Corridor", resolvedAt: new Date().toISOString() },
   ],
 };

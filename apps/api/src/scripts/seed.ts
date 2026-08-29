@@ -113,11 +113,11 @@ const TEMPLATES: SeedTemplate[] = [
 ];
 
 const ZONES = [
-  { name: "Central District", coords: [-74.006, 40.7128] },
-  { name: "Northside Park Area", coords: [-74.002, 40.7185] },
-  { name: "East Expressway Corridor", coords: [-73.992, 40.7142] },
-  { name: "South Industrial Zone", coords: [-74.015, 40.705] },
-  { name: "Westside Residential Colony", coords: [-74.019, 40.716] },
+  { name: "Central Bengaluru (MG Road)", coords: [77.5946, 12.9716] },
+  { name: "Northside Hebbal Zone", coords: [77.5800, 13.0200] },
+  { name: "East Corridor (Indiranagar)", coords: [77.6412, 12.9784] },
+  { name: "South Koramangala Hub", coords: [77.6200, 12.9352] },
+  { name: "Westside Rajajinagar Colony", coords: [77.5500, 12.9900] },
 ];
 
 const RESOLUTION_NOTES = [

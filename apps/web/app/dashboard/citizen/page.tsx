@@ -25,12 +25,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { MonkeyIcon, CattleIcon } from "@/components/SpeciesIcons";
-
-interface UploadedPhoto {
-  url: string;
-  public_id: string;
-  originalName: string;
-}
+import { LocationPickerMap, NearbyCasesMap } from "@/components/maps";
+import { CameraCapture, CapturedPhoto } from "@/components/CameraCapture";
 
 interface ReportItem {
   _id: string;
@@ -59,12 +55,11 @@ export default function CitizenDashboardPage() {
   const [species, setSpecies] = useState<string>("dog");
   const [category, setCategory] = useState<string>("stray_sighting");
   const [description, setDescription] = useState<string>("");
-  const [address, setAddress] = useState<string>("Northside Park, Sector 4");
-  const [coordinates, setCoordinates] = useState<[number, number]>([-74.006, 40.7128]); // [lng, lat]
-  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+  const [address, setAddress] = useState<string>("Cubbon Park Main Gate, MG Road, Bengaluru");
+  const [coordinates, setCoordinates] = useState<[number, number]>([77.5946, 12.9716]); // [lng, lat] (Bengaluru, India)
+  const [photos, setPhotos] = useState<CapturedPhoto[]>([]);
 
   // UI & Loading State
-  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -74,8 +69,6 @@ export default function CitizenDashboardPage() {
   const [myReports, setMyReports] = useState<ReportItem[]>([]);
   const [nearbyCases, setNearbyCases] = useState<ReportItem[]>([]);
   const [selectedReportForTracking, setSelectedReportForTracking] = useState<ReportItem | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const speciesOptions = [
     { id: "dog", label: "Dogs", icon: Dog },
@@ -117,66 +110,6 @@ export default function CitizenDashboardPage() {
     fetchMyReports();
     fetchNearbyCases();
   }, [coordinates]);
-
-  // Handle Photo Upload to Cloudinary API
-  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    if (photos.length + files.length > 3) {
-      setUploadError("Maximum 3 photos allowed per report.");
-      return;
-    }
-
-    setUploadError("");
-    setIsUploading(true);
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Validate size (<5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError(`File '${file.name}' exceeds the 5MB limit.`);
-        setIsUploading(false);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("photo", file);
-
-      try {
-        const tokens = JSON.parse(localStorage.getItem("paw_access_token") || '""');
-        const res = await fetch("http://localhost:5001/api/uploads/report-photo", {
-          method: "POST",
-          headers: tokens ? { Authorization: `Bearer ${tokens}` } : {},
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success && data.data?.url) {
-          setPhotos((prev) => [
-            ...prev,
-            {
-              url: data.data.url,
-              public_id: data.data.public_id,
-              originalName: file.name,
-            },
-          ]);
-        } else {
-          setUploadError(data.message || "Photo upload failed. Please try again.");
-        }
-      } catch (err: any) {
-        setUploadError("Network error during photo upload.");
-      }
-    }
-
-    setIsUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const removePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, idx) => idx !== index));
-  };
 
   // Handle Report Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -374,34 +307,15 @@ export default function CitizenDashboardPage() {
                         </p>
                       )}
 
-                      {/* Map Preview Graphic matching Stitch */}
-                      <div className="relative h-44 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-inner group">
-                        <div className="absolute inset-0 bg-[#E5EEF4] flex flex-col justify-between p-3">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[10px] bg-white/90 px-2 py-0.5 rounded shadow-xs font-bold text-slate-700">
-                              Sector 4 - Central District
-                            </span>
-                            <span className="text-[10px] bg-teal-800 text-white px-2 py-0.5 rounded shadow-xs font-semibold">
-                              GPS Geotagged
-                            </span>
-                          </div>
-
-                          <div className="absolute inset-0 opacity-40 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-
-                          <div className="relative z-10 self-center flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center shadow-lg border-2 border-white animate-bounce">
-                              <MapPin className="w-4 h-4" />
-                            </div>
-                            <span className="mt-1 bg-slate-900/90 text-white text-[9px] px-2 py-0.5 rounded font-mono shadow">
-                              {coordinates[1].toFixed(4)}° N, {coordinates[0].toFixed(4)}° W
-                            </span>
-                          </div>
-
-                          <div className="text-[10px] text-slate-500 font-medium text-right">
-                            Coordinates verified
-                          </div>
-                        </div>
-                      </div>
+                      {/* Interactive Leaflet Location Map with Nominatim Reverse Geocoding */}
+                      <LocationPickerMap
+                        initialLat={coordinates[1]}
+                        initialLng={coordinates[0]}
+                        onLocationSelect={({ coordinates: newCoords, address: newAddr }) => {
+                          setCoordinates(newCoords);
+                          setAddress(newAddr);
+                        }}
+                      />
                     </div>
 
                     {/* Description */}
@@ -432,97 +346,13 @@ export default function CitizenDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Photo Upload Pipeline with Cloudinary */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                        Photo Evidence (Cloudinary Free Tier)
-                      </label>
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        {photos.length}/3 photos uploaded
-                      </span>
-                    </div>
-
-                    {/* Hidden Native File Input */}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handlePhotoSelect}
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      className="hidden"
-                    />
-
-                    {/* Upload Dropzone */}
-                    {photos.length < 3 && (
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-xl p-5 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-teal-50/30 transition-all cursor-pointer group"
-                      >
-                        {isUploading ? (
-                          <div className="flex flex-col items-center gap-2 py-2">
-                            <Loader2 className="w-7 h-7 text-teal-700 animate-spin" />
-                            <p className="text-xs font-semibold text-teal-900">
-                              Uploading photo to Cloudinary CDN...
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-500 group-hover:text-teal-700 flex items-center justify-center shadow-xs mb-2 transition-colors">
-                              <Camera className="w-5 h-5" />
-                            </div>
-                            <p className="text-xs font-semibold text-slate-700 group-hover:text-teal-900">
-                              Tap to upload photos
-                            </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
-                              JPG, PNG, WebP (Max 5MB each)
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {uploadError && (
-                      <div className="mt-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium">
-                        <AlertTriangle className="w-4 h-4 shrink-0" />
-                        <span>{uploadError}</span>
-                      </div>
-                    )}
-
-                    {/* Uploaded Thumbnails List with remove button */}
-                    {photos.length > 0 && (
-                      <div className="mt-3 grid grid-cols-3 gap-3">
-                        {photos.map((photo, idx) => (
-                          <div
-                            key={idx}
-                            className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group shadow-xs"
-                          >
-                            <img
-                              src={photo.url}
-                              alt="Upload preview"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between p-2">
-                              <span className="text-[9px] text-white font-mono truncate max-w-[80px]">
-                                {photo.originalName}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removePhoto(idx);
-                                }}
-                                className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-sm hover:bg-red-700"
-                                title="Remove photo"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {/* Live In-Browser Camera Capture Component */}
+                  <CameraCapture
+                    photos={photos}
+                    onPhotoAdded={(newPhoto) => setPhotos((prev) => [...prev, newPhoto])}
+                    onPhotoRemoved={(pubId) => setPhotos((prev) => prev.filter((p) => p.public_id !== pubId))}
+                    maxPhotos={3}
+                  />
 
                   {/* Form Actions */}
                   <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -539,8 +369,8 @@ export default function CitizenDashboardPage() {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting || isUploading}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm hover:shadow disabled:opacity-50 transition-all"
+                      disabled={isSubmitting}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm hover:shadow disabled:opacity-50 transition-all cursor-pointer"
                     >
                       {isSubmitting ? (
                         <>
@@ -644,45 +474,24 @@ export default function CitizenDashboardPage() {
                 </div>
               </div>
 
-              {/* Nearby Active Cases Card matching Stitch Image 2 */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              {/* Nearby Active Cases Card with Real Interactive Leaflet Map */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <h3 className="font-bold text-base text-slate-900 tracking-tight">
                     Nearby Active Cases
                   </h3>
-                  <MapIcon className="w-4 h-4 text-slate-400" />
+                  <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full">
+                    {nearbyCases.length} nearby
+                  </span>
                 </div>
 
-                <div className="mt-4 relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-[4/3]">
-                  <div className="absolute inset-0 bg-[#E8EEF3] p-3 flex flex-col justify-between">
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="bg-white/95 px-2 py-0.5 rounded shadow-xs font-bold text-slate-800">
-                        Central District Live Radius
-                      </span>
-                    </div>
-
-                    {/* Visual Clustered Pins */}
-                    <div className="relative w-full h-full my-2">
-                      <div className="absolute top-1/4 left-1/3 w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shadow-md animate-pulse">
-                        !
-                      </div>
-                      <div className="absolute bottom-1/3 right-1/4 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shadow-md">
-                        !
-                      </div>
-                      <div className="absolute top-1/2 left-2/3 w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-bold shadow-md">
-                        ✓
-                      </div>
-                    </div>
-
-                    <div className="self-end">
-                      <span className="px-2.5 py-1 rounded-md bg-slate-900/85 text-white text-[10px] font-semibold backdrop-blur-xs shadow">
-                        {nearbyCases.length > 0
-                          ? `${nearbyCases.length} cases within 5km`
-                          : "3 cases within 2km"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {/* Real Interactive Leaflet Map */}
+                <NearbyCasesMap
+                  reports={nearbyCases}
+                  centerLat={coordinates[1]}
+                  centerLng={coordinates[0]}
+                  onSelectCase={(rep) => setSelectedReportForTracking(rep as any)}
+                />
 
                 {/* Real nearby reports preview list */}
                 {nearbyCases.length > 0 && (

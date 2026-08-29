@@ -234,6 +234,35 @@ export default function AdminDashboardPage() {
     });
   }, [reports, searchTerm, speciesFilter, categoryFilter, statusFilter]);
 
+  // CSV Export
+  const handleExportCSV = () => {
+    if (!filteredReports || filteredReports.length === 0) {
+      alert("No report data available to export.");
+      return;
+    }
+    const headers = ["Case ID", "Species", "Category", "Description", "Address", "Urgency Score", "Status", "Assigned Officer", "Created At"];
+    const rows = filteredReports.map((r) => [
+      `"${r._id}"`,
+      `"${r.species}"`,
+      `"${r.category}"`,
+      `"${r.description.replace(/"/g, '""')}"`,
+      `"${r.location.address.replace(/"/g, '""')}"`,
+      r.urgencyScore ?? 50,
+      `"${r.status}"`,
+      `"${r.assignedTo?.name || "Unassigned"}"`,
+      `"${new Date(r.createdAt).toISOString()}"`,
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `pawtrack_incidents_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <ProtectedRoute allowedRoles={["admin"]}>
       <div className="min-h-screen flex bg-[#FAFBFD]">
@@ -270,8 +299,16 @@ export default function AdminDashboardPage() {
 
             <div className="flex items-center gap-3">
               <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                title="Export filtered reports as CSV file"
+              >
+                <Download className="w-3.5 h-3.5 text-teal-700" />
+                <span>Export CSV</span>
+              </button>
+              <button
                 onClick={fetchData}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
                 <span>Refresh</span>

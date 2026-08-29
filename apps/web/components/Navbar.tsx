@@ -31,28 +31,28 @@ export const Navbar: React.FC<{ activeTab?: string }> = ({ activeTab = "" }) => 
         {/* Center Nav Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
           <Link
-            href="/#reports"
+            href="/#transparency"
             className={`hover:text-teal-700 transition-colors ${
-              activeTab === "reports" ? "text-teal-800 font-semibold" : ""
+              activeTab === "reports" ? "text-teal-800 font-bold" : ""
             }`}
           >
-            Public Reports
+            Public Transparency
           </Link>
           <Link
-            href="/#resources"
+            href="/resources"
             className={`hover:text-teal-700 transition-colors ${
-              activeTab === "resources" ? "text-teal-800 font-semibold" : ""
+              activeTab === "resources" ? "text-teal-800 font-bold" : ""
             }`}
           >
-            Resources
+            Welfare Resources
           </Link>
           <Link
-            href="/#community"
+            href="/community"
             className={`hover:text-teal-700 transition-colors ${
-              activeTab === "community" ? "text-teal-800 font-semibold" : ""
+              activeTab === "community" ? "text-teal-800 font-bold" : ""
             }`}
           >
-            Community
+            Community Impact
           </Link>
         </nav>
 

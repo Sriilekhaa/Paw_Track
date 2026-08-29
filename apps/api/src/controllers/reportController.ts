@@ -242,7 +242,7 @@ export const getNearbyReports = async (
     res.status(200).json({
       success: true,
       data: {
-        center: { lat: 40.7128, lng: -74.006 },
+        center: { lat: 12.9716, lng: 77.5946 },
         radiusMeters: 5000,
         count: 0,
         reports: [],
