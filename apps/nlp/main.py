@@ -1,3 +1,18 @@
+import os
+
+# Limit memory fragmentation and CPU thread contention for Render 512MB free tier
+os.environ["MALLOC_ARENA_MAX"] = "2"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+try:
+    import torch
+    torch.set_grad_enabled(False)
+    torch.set_num_threads(1)
+except ImportError:
+    pass
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any

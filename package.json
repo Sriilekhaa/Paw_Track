@@ -8,9 +8,13 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "dev:api": "npm run dev --workspace=apps/api",
-    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=@pawtrack/api",
+    "dev:web": "npm run dev --workspace=web",
     "build": "npm run build --workspaces --if-present",
+    "build:api": "npm run build --workspace=@pawtrack/api",
+    "build:web": "npm run build --workspace=web",
+    "seed": "npm run seed --workspace=@pawtrack/api",
+    "test": "npm test --workspace=@pawtrack/api",
     "lint": "npm run lint --workspaces --if-present"
   },
   "keywords": [

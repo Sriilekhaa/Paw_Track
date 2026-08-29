@@ -57,11 +57,13 @@ class ReportClassifier:
         if self._initialized:
             return
         try:
+            import os
             from transformers import pipeline
-            # Use small fast zero-shot model for local CPU execution
+            model_name = os.environ.get("CLASSIFIER_MODEL", "valhalla/distilbart-mnli-12-3")
+            # Use small fast zero-shot model for local / free-tier CPU execution
             self._pipeline = pipeline(
                 "zero-shot-classification",
-                model="valhalla/distilbart-mnli-12-3",
+                model=model_name,
                 device=-1,  # CPU execution
             )
             self._initialized = True
