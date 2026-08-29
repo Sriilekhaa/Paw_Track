@@ -9,8 +9,6 @@ import {
   Lightbulb,
   Dog,
   Cat,
-  Footprints,
-  Bug,
   Bird,
   HelpCircle,
   MapPin,
@@ -26,6 +24,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { MonkeyIcon, CattleIcon } from "@/components/SpeciesIcons";
 
 interface UploadedPhoto {
   url: string;
@@ -81,8 +80,8 @@ export default function CitizenDashboardPage() {
   const speciesOptions = [
     { id: "dog", label: "Dogs", icon: Dog },
     { id: "cat", label: "Cats", icon: Cat },
-    { id: "cattle", label: "Cattle", icon: Footprints },
-    { id: "monkey", label: "Monkeys", icon: Bug },
+    { id: "cattle", label: "Cattle", icon: CattleIcon },
+    { id: "monkey", label: "Monkeys", icon: MonkeyIcon },
     { id: "bird", label: "Birds", icon: Bird },
     { id: "other", label: "Other", icon: HelpCircle },
   ];
