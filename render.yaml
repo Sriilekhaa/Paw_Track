@@ -1,0 +1,49 @@
+services:
+  # 1. FastAPI Python NLP Microservice
+  - type: web
+    name: pawtrack-nlp
+    env: python
+    rootDir: apps/nlp
+    plan: free
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python -m spacy download en_core_web_sm
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+
+  # 2. Node.js Express API & Socket.IO Gateway
+  - type: web
+    name: pawtrack-api
+    env: node
+    rootDir: apps/api
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: NLP_SERVICE_URL
+        fromService:
+          type: web
+          name: pawtrack-nlp
+          property: host
+      - key: CORS_ORIGIN
+        value: http://localhost:3000

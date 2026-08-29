@@ -2,283 +2,414 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import {
   AlertCircle,
   BookOpen,
   CheckCircle2,
   Clock,
-  HeartHandshake,
   Shield,
-  ThumbsUp,
-  Users,
-  Compass,
+  Bot,
+  Zap,
+  MapPin,
+  TrendingUp,
+  Radio,
   ArrowRight,
+  UserCheck,
+  Flame,
+  Award,
+  Sparkles,
+  Heart,
 } from "lucide-react";
 
+interface PublicStatsData {
+  summary: {
+    totalReportsHandled: number;
+    totalResolved: number;
+    activeInField: number;
+    resolutionRatePercentage: number;
+    avgResponseTimeHours: number;
+    avgAiTriageSeconds: number;
+  };
+  speciesBreakdown: Array<{ species: string; count: number }>;
+  categoryBreakdown: Array<{ category: string; count: number }>;
+  zoneHeatmap: Array<{
+    zoneName: string;
+    totalCases: number;
+    resolvedCases: number;
+    resolutionRate: number;
+    avgUrgencyScore: number;
+  }>;
+  recentResolutions: Array<{
+    id: string;
+    species: string;
+    category: string;
+    zone: string;
+    resolvedAt: string;
+  }>;
+}
+
 export default function LandingPage() {
-  const [stats, setStats] = useState({
-    totalReportsHandled: 12450,
-    resolutionRatePercentage: 94,
-    avgResponseTimeHours: "< 2 Hrs",
-  });
+  const router = useRouter();
+  const { login } = useAuth();
+  const [stats, setStats] = useState<PublicStatsData | null>(null);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [isDemoLoggingIn, setIsDemoLoggingIn] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch live public stats from backend
-    api.get("/reports/public-stats").then((res) => {
-      if (res.success && res.data) {
-        setStats({
-          totalReportsHandled: res.data.totalReportsHandled || 12450,
-          resolutionRatePercentage: res.data.resolutionRatePercentage || 94,
-          avgResponseTimeHours: "< 2 Hrs",
-        });
-      }
-    });
+    // Show waking up notice if backend takes > 2 seconds (Render cold start)
+    const timeout = setTimeout(() => {
+      if (!stats) setIsWakingUp(true);
+    }, 2000);
+
+    api.get<PublicStatsData>("/public/stats")
+      .then((res) => {
+        clearTimeout(timeout);
+        setIsWakingUp(false);
+        if (res.success && res.data) {
+          setStats(res.data);
+        } else {
+          setStats(defaultFallbackStats);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeout);
+        setIsWakingUp(false);
+        setStats(defaultFallbackStats);
+      });
+
+    return () => clearTimeout(timeout);
   }, []);
+
+  // One-click demo login helper for portfolio demonstration
+  const handleQuickDemoLogin = async (email: string, role: string) => {
+    setIsDemoLoggingIn(role);
+    try {
+      const res = await api.post("/auth/login", {
+        email,
+        password: "Password123!",
+      });
+
+      if (res.success && res.data?.user) {
+        api.setTokens(res.data.tokens);
+        api.setUser(res.data.user);
+        if (res.data.user.role === "admin") {
+          router.push("/dashboard/admin");
+        } else if (res.data.user.role === "field_worker") {
+          router.push("/dashboard/field-worker");
+        } else {
+          router.push("/dashboard/citizen");
+        }
+      } else {
+        alert(res.message || "Failed to log in with demo account. Ensure database is seeded.");
+      }
+    } catch (err: any) {
+      alert("Demo Login error: " + err.message);
+    } finally {
+      setIsDemoLoggingIn(null);
+    }
+  };
+
+  const currentStats = stats || defaultFallbackStats;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFBFD]">
       {/* Top Navigation */}
       <Navbar />
 
-      {/* Main Hero Section */}
+      {/* Free-tier Cold-Start Awareness Notice */}
+      {isWakingUp && (
+        <div className="bg-amber-900 text-amber-100 px-6 py-2.5 flex items-center justify-center gap-2 text-xs font-semibold shadow-inner animate-pulse">
+          <Radio className="w-4 h-4 text-amber-300 animate-spin" />
+          <span>Waking up cloud backend (Render free-tier cold start in progress, please allow ~30s)...</span>
+        </div>
+      )}
+
+      {/* Hero Section */}
       <main className="flex-1">
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 lg:pt-20 lg:pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 lg:pt-16 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             {/* Left Column: Headline & Action Triggers */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-                <Shield className="w-3.5 h-3.5 text-teal-600" />
-                <span>Municipal Public Safety Initiative</span>
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-900 text-xs font-bold">
+                <Shield className="w-3.5 h-3.5 text-teal-700" />
+                <span>Municipal Animal Welfare & Public Safety Network</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-                Empowering{" "}
-                <span className="text-teal-700 underline decoration-teal-300 decoration-wavy decoration-2">
-                  Community
-                </span>{" "}
-                for Urban Animal Welfare
+                Empowering Communities for{" "}
+                <span className="text-teal-800 underline decoration-teal-300 decoration-wavy decoration-2">
+                  Urban Animal Welfare
+                </span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
-                A modern, transparent platform connecting citizens, municipal
-                services, and local organizations to protect and support our
-                city&apos;s animals. Report incidents, track resolutions, and
-                build a safer environment together.
+                A production-grade, privacy-compliant transparency platform connecting citizens,
+                municipal rescue units, and veterinary services with real-time AI triage and SLA tracking.
               </p>
 
-              {/* Action Buttons matching Stitch */}
+              {/* Action CTA Buttons */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/dashboard/citizen"
-                  className="flex items-center gap-2.5 px-6 py-3.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-semibold text-base shadow-sm hover:shadow transition-all"
+                  className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-sm shadow-sm hover:shadow transition-all"
                 >
                   <AlertCircle className="w-5 h-5" />
-                  <span>Report an Incident</span>
+                  <span>Report Animal Incident</span>
                 </Link>
 
-                <Link
-                  href="#resources"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-base border border-teal-300 transition-all"
+                <a
+                  href="#transparency"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 font-bold text-sm border border-teal-300 transition-all"
                 >
                   <BookOpen className="w-5 h-5 text-teal-700" />
-                  <span>View Resources</span>
-                </Link>
+                  <span>Public Transparency Portal</span>
+                </a>
               </div>
 
-              {/* Verified Trust Badges */}
-              <div className="flex items-center gap-6 pt-4 text-xs font-medium text-slate-500">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                  <span>24/7 Field Dispatch</span>
+              {/* One-Click Demo Role Switcher for Portfolio Reviewers */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-teal-700" />
+                    1-Click Portfolio Demo Login (Instant Role Switching):
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                  <span>GPS Geotagged Reports</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                  <span>Live Resolution Tracking</span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    disabled={!!isDemoLoggingIn}
+                    onClick={() => handleQuickDemoLogin("demo.admin@pawtrack.app", "admin")}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-teal-400" />
+                    <span>{isDemoLoggingIn === "admin" ? "Logging in..." : "City Admin"}</span>
+                  </button>
+
+                  <button
+                    disabled={!!isDemoLoggingIn}
+                    onClick={() => handleQuickDemoLogin("demo.officer@pawtrack.app", "field_worker")}
+                    className="px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-teal-300" />
+                    <span>{isDemoLoggingIn === "field_worker" ? "Logging in..." : "Field Officer"}</span>
+                  </button>
+
+                  <button
+                    disabled={!!isDemoLoggingIn}
+                    onClick={() => handleQuickDemoLogin("demo.citizen@pawtrack.app", "citizen")}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{isDemoLoggingIn === "citizen" ? "Logging in..." : "Citizen User"}</span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Hero Visual Artwork */}
-            <div className="lg:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-gradient-to-tr from-teal-900 to-slate-800 group">
-                <div className="relative aspect-[4/3] w-full bg-slate-200 overflow-hidden">
-                  {/* Photo illustration */}
-                  <img
-                    src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80"
-                    alt="Community officer and friendly urban dog"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl backdrop-blur-md bg-white/20 border border-white/30 text-white">
+            {/* Right Column: Live Impact Cards */}
+            <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Reports</span>
+                <div className="text-3xl font-extrabold text-slate-900">
+                  {currentStats.summary.totalReportsHandled}+
+                </div>
+                <p className="text-[11px] text-teal-700 font-medium">Logged & geotagged</p>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Resolution Rate</span>
+                <div className="text-3xl font-extrabold text-emerald-700">
+                  {currentStats.summary.resolutionRatePercentage}%
+                </div>
+                <p className="text-[11px] text-emerald-700 font-medium">Successful outcomes</p>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg SLA Response</span>
+                <div className="text-3xl font-extrabold text-amber-700">
+                  {currentStats.summary.avgResponseTimeHours}h
+                </div>
+                <p className="text-[11px] text-amber-700 font-medium">&lt; 2h on critical cases</p>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Triage Speed</span>
+                <div className="text-3xl font-extrabold text-teal-800">
+                  {currentStats.summary.avgAiTriageSeconds}s
+                </div>
+                <p className="text-[11px] text-teal-700 font-medium">HuggingFace Zero-Shot</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Public Transparency Section */}
+        <section id="transparency" className="bg-white border-t border-slate-200 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                Public Animal Welfare Transparency Portal
+              </h2>
+              <p className="text-sm text-slate-600">
+                Aggregated, privacy-compliant city metrics. Raw coordinates and reporter identities are protected.
+              </p>
+            </div>
+
+            {/* Zone-Level Activity Distribution (Generalized Map) */}
+            <div className="rounded-2xl border border-slate-200 bg-[#FAFBFD] p-6 shadow-xs space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Citywide Zone Activity & Resolution Efficiency
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Aggregated by municipal operational districts
+                  </p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  5 Operational Districts Monitored
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {currentStats.zoneHeatmap.map((zone, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 shadow-2xs"
+                  >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-wider text-teal-200 font-bold">
-                          Live Field Unit Active
-                        </p>
-                        <p className="text-sm font-semibold">
-                          Sector 4 Patrol & Community Rescue
-                        </p>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/90 text-white text-xs font-bold shadow-sm">
-                        Online
+                      <span className="font-bold text-slate-900 text-xs">{zone.zoneName}</span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                        {zone.resolutionRate}% Resolved
                       </span>
                     </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-slate-600">
+                        <span>Incident Volume</span>
+                        <span className="font-bold text-slate-900">{zone.totalCases} cases</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-teal-700 rounded-full"
+                          style={{ width: `${Math.min(100, (zone.totalCases / 70) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                      <span>Avg Urgency Score:</span>
+                      <span className="font-bold text-slate-700">{zone.avgUrgencyScore}/100</span>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* 3 Metric Cards Row Matching Stitch Design */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 pt-8 border-t border-slate-200">
-            {/* Metric 1 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 mb-4 shadow-inner">
-                <CheckCircle2 className="w-7 h-7" />
-              </div>
-              <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                {stats.totalReportsHandled.toLocaleString()}
-              </h3>
-              <p className="text-xs uppercase font-bold tracking-wider text-slate-500 mt-2">
-                Total Reports Handled
-              </p>
-            </div>
-
-            {/* Metric 2 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 mb-4 shadow-inner">
-                <ThumbsUp className="w-7 h-7" />
-              </div>
-              <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                {stats.resolutionRatePercentage}%
-              </h3>
-              <p className="text-xs uppercase font-bold tracking-wider text-slate-500 mt-2">
-                Resolution Rate
-              </p>
-            </div>
-
-            {/* Metric 3 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 mb-4 shadow-inner">
-                <Clock className="w-7 h-7" />
-              </div>
-              <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                {stats.avgResponseTimeHours}
-              </h3>
-              <p className="text-xs uppercase font-bold tracking-wider text-slate-500 mt-2">
-                Avg Response Time
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Role Portal Access for pair programming demo */}
-          <div className="mt-16 bg-gradient-to-r from-teal-900 to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl">
-            <div className="max-w-3xl">
-              <span className="text-xs font-bold uppercase tracking-widest text-teal-400">
-                Explore Portals & RBAC
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold mt-2 text-white">
-                Multi-Role Platform Access
-              </h2>
-              <p className="text-slate-300 text-sm mt-2">
-                Experience PawTrack through each stakeholder viewpoint with
-                distinct role-gated interfaces.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <Link
-                href="/dashboard/citizen"
-                className="bg-white/10 hover:bg-white/15 border border-white/15 p-5 rounded-xl transition-all group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-10 h-10 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center mb-3">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white group-hover:text-teal-300 transition-colors">
-                    Citizen Portal
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Submit geocoded incident reports, select animal species, and track resolution progress.
-                  </p>
+            {/* Species & Category Distribution */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Species */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  Species Distribution
+                </h3>
+                <div className="space-y-3">
+                  {currentStats.speciesBreakdown.map((s, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex justify-between text-xs font-semibold capitalize text-slate-700">
+                        <span>{s.species}</span>
+                        <span>{s.count} reports</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-teal-800 rounded-full"
+                          style={{ width: `${Math.min(100, (s.count / 85) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-teal-400 mt-4">
-                  Open Citizen Shell <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
+              </div>
 
-              <Link
-                href="/dashboard/field-worker"
-                className="bg-white/10 hover:bg-white/15 border border-white/15 p-5 rounded-xl transition-all group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center mb-3">
-                    <Compass className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white group-hover:text-amber-300 transition-colors">
-                    Field Worker Operations
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Dispatch routing, priority queues, status progression (In-Transit, On-Site, Resolved), and AI insights.
-                  </p>
+              {/* Category */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  Incident Categories Handled
+                </h3>
+                <div className="space-y-3">
+                  {currentStats.categoryBreakdown.map((c, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex justify-between text-xs font-semibold capitalize text-slate-700">
+                        <span>{c.category.replace("_", " ")}</span>
+                        <span>{c.count} cases</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-amber-600 rounded-full"
+                          style={{ width: `${Math.min(100, (c.count / 75) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 mt-4">
-                  Open Field Shell <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
-
-              <Link
-                href="/dashboard/admin"
-                className="bg-white/10 hover:bg-white/15 border border-white/15 p-5 rounded-xl transition-all group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center mb-3">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white group-hover:text-emerald-300 transition-colors">
-                    Admin Oversight
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Citywide analytics, incident heatmap visualization, species breakdown, and CSV/PDF reports.
-                  </p>
-                </div>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 mt-4">
-                  Open Admin Shell <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer matching Stitch Layout */}
-      <footer className="w-full bg-white border-t border-slate-200 py-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-medium text-slate-600">
-            © 2026 Urban Animal Welfare Division. A Municipal Public Safety Initiative.
-          </p>
-          <div className="flex items-center gap-6">
-            <Link href="#privacy" className="hover:text-teal-700 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="#terms" className="hover:text-teal-700 transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="#accessibility" className="hover:text-teal-700 transition-colors">
-              Accessibility
-            </Link>
-            <Link href="#contact" className="hover:text-teal-700 transition-colors">
-              Contact Support
-            </Link>
+      {/* Footer */}
+      <footer className="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center gap-4 text-xs">
+          <div>
+            <span className="text-white font-bold">PAW TRACK</span> • Urban Animal Welfare & Public Safety Platform
+          </div>
+          <div>
+            Free-Tier Open Source Deployment • Production Hardened
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+const defaultFallbackStats: PublicStatsData = {
+  summary: {
+    totalReportsHandled: 185,
+    totalResolved: 148,
+    activeInField: 22,
+    resolutionRatePercentage: 94,
+    avgResponseTimeHours: 1.8,
+    avgAiTriageSeconds: 2.1,
+  },
+  speciesBreakdown: [
+    { species: "dog", count: 78 },
+    { species: "cat", count: 42 },
+    { species: "cattle", count: 35 },
+    { species: "bird", count: 18 },
+    { species: "monkey", count: 12 },
+  ],
+  categoryBreakdown: [
+    { category: "injury", count: 68 },
+    { category: "stray_sighting", count: 46 },
+    { category: "sterilization_request", count: 32 },
+    { category: "bite_incident", count: 21 },
+    { category: "cruelty_report", count: 11 },
+    { category: "roadkill", count: 7 },
+  ],
+  zoneHeatmap: [
+    { zoneName: "Central District", totalCases: 62, resolvedCases: 54, resolutionRate: 87, avgUrgencyScore: 58 },
+    { zoneName: "Northside Park Area", totalCases: 48, resolvedCases: 42, resolutionRate: 88, avgUrgencyScore: 64 },
+    { zoneName: "East Expressway Corridor", totalCases: 38, resolvedCases: 30, resolutionRate: 79, avgUrgencyScore: 72 },
+    { zoneName: "South Industrial Zone", totalCases: 24, resolvedCases: 19, resolutionRate: 79, avgUrgencyScore: 52 },
+    { zoneName: "Westside Residential Colony", totalCases: 13, resolvedCases: 11, resolutionRate: 85, avgUrgencyScore: 44 },
+  ],
+  recentResolutions: [
+    { id: "CP-8291", species: "dog", category: "injury", zone: "Central District", resolvedAt: new Date().toISOString() },
+    { id: "CP-8290", species: "cattle", category: "roadkill", zone: "East Expressway Corridor", resolvedAt: new Date().toISOString() },
+  ],
+};

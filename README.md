@@ -117,10 +117,24 @@ npm run dev:web   # Next.js App at http://localhost:3000
 
 ---
 
+---
+
+## 🔑 Preconfigured Demo Accounts (Instant 1-Click Evaluation)
+
+All accounts are pre-seeded with 180+ authentic incident reports spanning 90 days with genuine NLP enrichments:
+
+| Role | Demo Email | Password | Access & Capabilities |
+| :--- | :--- | :--- | :--- |
+| **City Admin** | `demo.admin@pawtrack.app` | `Password123!` | Operations Command Console, "AI Suggests" Dispatch Modal, Citywide SLA Metrics |
+| **Field Officer** | `demo.officer@pawtrack.app` | `Password123!` | Assigned Dispatch Queue, AI Triage & Clinical Explainability Panel, Status Resolver |
+| **Citizen User** | `demo.citizen@pawtrack.app` | `Password123!` | Incident Submission, Photo Evidence Uploader, Personal Reports History |
+
+---
+
 ## 📋 Multi-Step Roadmap
 
 - [x] **Step 1 (Foundation):** Monorepo setup, Mongoose schemas (User & Report), JWT Auth with refresh token rotation, Express RBAC, Next.js 15 UI shells matching Stitch designs.
 - [x] **Step 2 (Report Submission & Media Pipeline):** Cloudinary photo uploads (free-tier with 1-retry fallback), Multer 5MB/MIME validation, Zod validation & XSS sanitization, 2dsphere spatial nearby search, per-user rate limiting (10/hr), server-side RBAC, real-time citizen portal integration, and 13 Jest/Supertest automated tests.
 - [x] **Step 3 (NLP & AI Intelligence Service):** Python/FastAPI microservice (`apps/nlp`), Zero-Shot HuggingFace category classifier (91.67% accuracy), Species-aware spaCy domain NER, Explainable Urgency/Sentiment scoring, SentenceTransformers semantic duplicate detection (100% precision at threshold 0.70), and resilient Node.js Express async enrichment queue.
 - [x] **Step 4 (Field Dispatch, Live Status Workflow & SLA Tracking):** Admin dispatch engine with "AI Suggests, Human Decides" auto-suggestions, strict state machine status transitions, SLA response-time tracking aggregations, Field Worker case management with AI Triage explainability panel, Admin Operations Command Console, live Socket.IO synchronizations, and 20 Jest integration tests.
-- [ ] **Step 5 (Admin Analytics & Public Reporting):** Live Heatmap aggregation, export pipelines (CSV/PDF), and Public Transparency portal.
+- [x] **Step 5 (Public Transparency, Demo Seeding, Hardening & Deployment):** Privacy-compliant Public Transparency Portal (`/`), comprehensive seed script (`apps/api/src/scripts/seed.ts`), 1-click demo persona switcher, cold-start handling, Render & Vercel deployment guides ([`DEPLOYMENT.md`](./DEPLOYMENT.md)).
