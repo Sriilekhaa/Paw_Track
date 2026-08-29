@@ -3,6 +3,7 @@ import { Report, IReport, SpeciesType, ReportCategory } from "../models/Report.j
 import { z } from "zod";
 import xss from "xss";
 import mongoose from "mongoose";
+import { nlpService } from "../services/nlpService.js";
 
 // Schema for report submission with strict validation
 export const createReportSchema = z.object({
@@ -117,6 +118,9 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
     });
 
     const savedReport = await newReport.save();
+
+    // Trigger asynchronous background AI enrichment (NLP classification, NER, urgency, duplicate check)
+    nlpService.enqueueReport(savedReport._id.toString());
 
     res.status(201).json({
       success: true,

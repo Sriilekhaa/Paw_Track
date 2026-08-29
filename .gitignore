@@ -3,6 +3,13 @@ node_modules/
 .pnp
 .pnp.js
 
+# Python & NLP Service
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Testing & In-memory databases
 .cache/
 coverage/

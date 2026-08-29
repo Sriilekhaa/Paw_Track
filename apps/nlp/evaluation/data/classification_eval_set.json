@@ -1,0 +1,902 @@
+[
+  {
+    "text": "Found a medium sized brown stray dog near the metro gate. It has a severely bleeding left front leg and cannot put weight on it.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "A stray cow was hit by a speeding auto-rickshaw on the main road. Horn is fractured and bleeding continuously.",
+    "species": "cattle",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Pigeon with broken wing lying helpless on the sidewalk under the banyan tree. Unable to fly away.",
+    "species": "bird",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Cat fell from third floor balcony onto the concrete driveway. Crying loudly in pain with suspected pelvic fracture.",
+    "species": "cat",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Young rhesus macaque received a severe electric shock from an exposed overhead transformer wire. Hand is charred.",
+    "species": "monkey",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Stray puppy has a deep open wound on its neck infested with maggots. Foul smell and very weak.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Bull with severe hoof infection and deep laceration on flank. Limping heavily near vegetable mandi.",
+    "species": "cattle",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Kite bird entangled in sharp Chinese glass-coated manja hanging from a street light pole. Wings cut and bleeding.",
+    "species": "bird",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Street dog with fractured hind leg dragging its body across Sector 14 market lane.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Feral cat has a massive burst abscess on its right cheek. Pus draining and animal appears lethargic.",
+    "species": "cat",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Injured donkey collapsed on roadside with heavy bleeding from abdominal cut.",
+    "species": "other",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Dog hit by a delivery bike 20 minutes ago. Lying unconscious on footpath with head trauma.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Large owl grounded on university campus ground. Looks dehydrated with drooping injured wing.",
+    "species": "bird",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Baby monkey burned on face and arms after touching high-voltage electrical cable near temple roof.",
+    "species": "monkey",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Stray dog with deep bite puncture wounds from dog fight. Shivering and losing blood.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Cat stuck on barbed wire fence behind industrial shed. Multiple deep lacerations on belly.",
+    "species": "cat",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Cow with swollen injured knee joint unable to stand up in municipal park.",
+    "species": "cattle",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Crow with nylon string wrapped tightly around its feet, cutting into the bone.",
+    "species": "bird",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Limping stray dog with front paw crushed under car tire. Whimpering continuously in alley.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Stray cat with eye injury and facial swelling after being attacked.",
+    "species": "cat",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Male monkey with severe bite laceration across back from dominant troop male.",
+    "species": "monkey",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Injured goat with broken rear leg on expressway shoulder.",
+    "species": "other",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Dog with large gash on side, blood pooling on pavement near bus stop.",
+    "species": "dog",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Injured peacock with wing damage found in residential society garden.",
+    "species": "bird",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Cow struck by truck with dislocated hip lying on highway divider.",
+    "species": "cattle",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Street kitten shivering with chemical burn on its back near garage.",
+    "species": "cat",
+    "ground_truth": "injury"
+  },
+  {
+    "text": "Aggressive black street dog bit a delivery boy on the ankle unprovoked near Block C gate.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "A pack of five dogs snarling and lunging at evening joggers near the community park.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Monkey entered second floor kitchen, became furious and bit resident on forearm when cornered.",
+    "species": "monkey",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Stray dog exhibiting aggressive snapping behavior, foaming around muzzle, attacked two pedestrians.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "School child bitten on thigh by a territory-guarding stray dog outside primary school.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Aggressive male dog chased elderly man on bicycle, causing him to fall and biting his calf.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Feral cat attacked veterinarian assistant with deep bite and scratch wounds during handling.",
+    "species": "cat",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Troop of monkeys attacking market fruit vendors and biting people trying to shoo them away.",
+    "species": "monkey",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Stray dog displaying rabid signs, snapping at air and lunging aggressively at passing motorbikes.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Aggressive bull charging at pedestrians and two-wheelers on crowded bazaar road.",
+    "species": "cattle",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Dog attacked a pet dog on leash and bit the owner who intervened.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Multiple dog bites reported from Sector 9 market area this morning by an aggressive mongrel.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Angry stray dog guarding a dead carcass biting anyone walking within ten meters.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Monkey jumped from balcony and bit a resident on the shoulder unprovoked.",
+    "species": "monkey",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Mother dog fiercely lunging and biting people passing near her newborn litter in alley.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Horse kicked and bit handler in commercial carriage stable.",
+    "species": "other",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Stray dog bite incident outside metro station exit 2. Victim bleeding from leg.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Hostile dog pack attacking night shift workers on industrial road.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Rabies suspected in stray dog showing extreme aggression, disorientation, and biting objects.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Furious cat bit child who accidentally stepped on its tail in apartment hallway.",
+    "species": "cat",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Aggressive simian snatching grocery bags and biting hand of lady in market.",
+    "species": "monkey",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Stray dog bit postal worker attempting to deliver parcel to house gate.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Bite incident by street dog outside hospital dispensary. Victim receiving post-exposure prophylaxis.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Unprovoked dog attack on morning walkers in central park.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Territorial male stray biting tires and chasing scooters at junction.",
+    "species": "dog",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Monkey bit child holding fruit on temple steps.",
+    "species": "monkey",
+    "ground_truth": "bite_incident"
+  },
+  {
+    "text": "Friendly golden retriever mix wandering around Sector 15 park. Has a red collar, looks lost.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Healthy stray cow grazing peacefully on roadside grass verge near water tank.",
+    "species": "cattle",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Two stray dogs sleeping peacefully outside grocery store. No signs of illness or conflict.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Siamese cat roaming around building basement parking for the past two days.",
+    "species": "cat",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Flock of domestic pigeons spotted nesting on high-rise air conditioner unit.",
+    "species": "bird",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Small group of monkeys foraging in trees along canal bank. Not bothering residents.",
+    "species": "monkey",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Lost German Shepherd with leather belt seen near highway fuel pump. Looks well groomed.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Calm white stray bull walking along residential road near temple.",
+    "species": "cattle",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Calico cat sighted roaming around playground area.",
+    "species": "cat",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Three healthy community stray dogs playing in vacant plot.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Donkey wandering alone near construction site.",
+    "species": "other",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Friendly black indie dog sitting near tea stall seeking biscuits.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Mother cow and calf standing under shade of tree on service lane.",
+    "species": "cattle",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Ginger tabby cat spotted sitting on boundary wall.",
+    "species": "cat",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Pair of stray dogs sighted roaming near metro parking area.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Monkeys sitting on electric cable overhead, normal foraging behavior.",
+    "species": "monkey",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Lost beagle wandering around neighborhood with blue harness.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Stray cat seen drinking water from society garden fountain.",
+    "species": "cat",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Herd of four stray cattle walking on sidewalk.",
+    "species": "cattle",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Spotted a stray husky looking disoriented in heat near mall entrance.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "White stray cat resting under parked sedan.",
+    "species": "cat",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Peacock wandering in suburban residential lane.",
+    "species": "bird",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Two indie puppies exploring garbage bin area with mother dog nearby.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Friendly stray dog following pedestrians near library.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Cattle herd grazing on municipal football ground.",
+    "species": "cattle",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Black and white stray dog resting under tree in sunshine.",
+    "species": "dog",
+    "ground_truth": "stray_sighting"
+  },
+  {
+    "text": "Requesting animal birth control sterilization for 6 female stray dogs in our society complex.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Large feral cat colony in sector 8 needs Trap-Neuter-Return (TNR) spaying and vaccination.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Four unneutered male dogs constantly fighting over females in heat in Pocket B.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Please schedule ABC sterilization drive for the growing stray dog population near fish market.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Community female cat has given birth three times this year. Needs urgent spaying and ear notching.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Requesting municipal van to pick up 8 stray dogs from our street for neutering and anti-rabies vaccination.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Feral cats multiplying rapidly in hospital basement. Urgent sterilization required.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Multiple unsterilized dogs in commercial area without ear-tip notches. Please arrange ABC surgery.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "We have 5 street dogs in our block that need to be caught, neutered, vaccinated, and returned.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Female street dog about to enter heat cycle. Requesting sterilization before pregnancy.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Sterilization drive needed for stray canine population in industrial estate.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Community cat TNR request for university campus residential zone.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Stray dog birth control request: 7 adult females without sterilization marks in sector 21.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Please arrange spaying for 3 female stray dogs roaming near government school.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Colony cats need neutering to prevent excessive kitten mortality and disease.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Requesting ABC NGO team to visit Block 4 for systematic dog sterilization and tagging.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Unsterilized stray dogs creating territorial packs. Please conduct sterilization operation.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Need spaying appointment for two community cats fed by society residents.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Please neuter the 4 male strays near railway crossing.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Animal birth control request for rural village perimeter stray dog pack.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Feral cats in restaurant alley require TNR sterilization program.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Request for municipal dog catchers to spay female street dogs in phase 2.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Unspayed female dog living near bus terminal needs sterilization.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Cat sterilization and anti-rabies drive requested for apartment complex.",
+    "species": "cat",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Sterilize 5 street dogs in market area to control population humanely.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "Requesting neutering and ear-notching for community dogs in Sector 12.",
+    "species": "dog",
+    "ground_truth": "sterilization_request"
+  },
+  {
+    "text": "A man is beating a stray dog with an iron rod in the vacant lot behind Sector 7 shops.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Neighbor has chained a dog on rooftop in extreme 45 degree heat without water or shelter.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Someone placed poisoned meat in the park, two dogs are convulsing and foaming.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Person intentionally threw boiling hot water on a mother cat and her kittens.",
+    "species": "cat",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Illegal cattle trafficking truck with cows packed tightly with legs tied and bleeding.",
+    "species": "cattle",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Group of youths throwing stones and bursting firecrackers tied to a stray dog's tail.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Pet owner abandoned sick labrador tied to a tree in forest area without food.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Severe animal abuse: person torturing street puppies by trapping them in plastic sack.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Dairy owner brutally hitting exhausted cow with wooden stick to force it to stand.",
+    "species": "cattle",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Illegal capture of wild parrots and keeping them in tiny wire cages in direct sun.",
+    "species": "bird",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Suspected mass poisoning of community dogs in residential colony. Three dead, one vomiting.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Person kicking and stomping on a stray cat near apartment elevator.",
+    "species": "cat",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Monkey trapped in illegal cage and being physically beaten by shopkeeper.",
+    "species": "monkey",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Owner deliberately starving horse in backyard stable. Ribs showing and severely neglected.",
+    "species": "other",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Someone intentionally drove car over sleeping street dog on sidewalk.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Tenant left dog locked inside locked empty apartment for four days without food or water.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Cruel act of burning cat with lit cigarettes in alley.",
+    "species": "cat",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Illegal bird poaching and trapping using glue traps in bird sanctuary perimeter.",
+    "species": "bird",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Man hitting bull on face with hammer near dairy colony.",
+    "species": "cattle",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Stray dog poisoned with pesticide laced food in society compound.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Cruelty complaint: dog dragged behind scooter on asphalt road.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Person shooting airgun pellets at stray cats from second floor balcony.",
+    "species": "cat",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Poisoning attempt against stray dog pack in market lane.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Puppies intentionally drowned in water drain by local resident.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Bull severely whipped and forced to pull overloaded cart while bleeding.",
+    "species": "cattle",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Animal abuse report: dog tied in dark basement without ventilation for weeks.",
+    "species": "dog",
+    "ground_truth": "cruelty_report"
+  },
+  {
+    "text": "Dead dog carcass lying on the central divider of the expressway near exit 4.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "A deceased cow body is blocking the right lane of the national highway. Immediate disposal needed.",
+    "species": "cattle",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead cat run over by vehicle on main avenue. Carcass decomposing in the sun.",
+    "species": "cat",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Large dead owl lying in the middle of the road after collision with truck.",
+    "species": "bird",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Roadkill: dead stray dog near metro pillar 142 causing traffic hazard and foul odor.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead monkey body on service lane after electrocution and fall.",
+    "species": "monkey",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Deceased bull carcass on ring road shoulder requiring municipal carcass recovery van.",
+    "species": "cattle",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Run-over cat body in residential society driveway. Hygiene hazard for children.",
+    "species": "cat",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Lifeless dog lying on asphalt road after fatal hit-and-run incident.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead pig body on side of bypass road decomposing.",
+    "species": "other",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Roadkill report: dead dog on expressway flyover blocking traffic lane.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead pigeon crushed by vehicle on pedestrian crossing.",
+    "species": "bird",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Deceased cow lying in middle of village access road.",
+    "species": "cattle",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead cat carcass on sidewalk outside grocery shop.",
+    "species": "cat",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Hit and run fatality: dead stray dog on ring road underpass.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Deceased monkey carcass lying near temple entrance steps.",
+    "species": "monkey",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Roadkill carcass of adult dog on state highway km 14.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead bird body lying on tennis court.",
+    "species": "bird",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead calf on road divider causing traffic jam.",
+    "species": "cattle",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Crushed cat carcass in parking lot needs immediate sanitation removal.",
+    "species": "cat",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead stray dog on highway lane. Needs municipal sanitation truck.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Deceased donkey body lying on expressway verge.",
+    "species": "other",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead street dog hit by bus early morning on main road.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Carcass of hit-and-run cat near school bus stop.",
+    "species": "cat",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead cow blocking intersection traffic flow.",
+    "species": "cattle",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Dead dog body decomposing in roadside ditch near market.",
+    "species": "dog",
+    "ground_truth": "roadkill"
+  },
+  {
+    "text": "Found a litter of four 4-week-old indie puppies abandoned in a cardboard box. Seeking adoption or foster home.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Rescued three orphaned kittens whose mother died. Looking for loving adoptive families.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Friendly vaccinated indie dog looking for a permanent home. Great with children.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Fostering two ginger kittens ready for adoption. Dewormed and litter trained.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Rescued adult golden retriever abandoned by previous owners. Seeking shelter or adoption placement.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Cute 2-month-old indie puppy up for adoption in Sector 18. Vaccinated.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Pair of rescued spayed cats seeking a joint home adoption.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Five healthy puppies born near society gate. Looking for foster parents before winter.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Injured owl fully recovered at clinic and ready for sanctuary release or adoption care.",
+    "species": "bird",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Calm, house-trained female dog available for adoption to good home.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Rescued calico kitten looking for adoption inquiry.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Abandonment rescue: sweet pedigree beagle looking for adoptive family.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Adoption appeal for 3 motherless puppies found near park.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Playful 3-month-old indie pup looking for loving forever home.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Tame rescued pigeon ready for adoption by bird lover.",
+    "species": "bird",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Kitten adoption drive: 4 healthy kittens ready for loving homes.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Rescued senior dog seeking hospice foster or adoption home.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Puppy adoption camp inquiry for 6 indie pups.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Two spayed female cats looking for adoption together.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Rescued laboratory beagle looking for adoption into caring family.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Adoption inquiry for blind indie dog that needs safe home.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Four orphaned kittens looking for foster or adoptive caregivers.",
+    "species": "cat",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Healthy young dog rescued from street, ready for adoption.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  },
+  {
+    "text": "Foster parent needed for three 1-month-old puppies.",
+    "species": "dog",
+    "ground_truth": "adoption_inquiry"
+  }
+]

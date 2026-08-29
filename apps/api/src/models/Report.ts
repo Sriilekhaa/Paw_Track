@@ -50,15 +50,16 @@ export interface IReport extends Document {
   reportedBy: mongoose.Types.ObjectId;
   assignedTo?: mongoose.Types.ObjectId;
   
-  // Future NLP & AI fields (populated later by apps/nlp)
+  // NLP & AI fields (populated by apps/nlp)
   urgencyScore?: number;
   sentiment?: {
     score?: number;
-    label?: "low" | "medium" | "high" | "critical";
+    label?: string;
   };
   entities?: Array<{
     text: string;
     label: string;
+    category?: string;
     confidence?: number;
   }>;
   embedding?: number[];
@@ -198,7 +199,7 @@ const ReportSchema = new Schema<IReport>(
       ref: "User",
       required: false,
     },
-    // Future NLP Fields
+    // NLP Fields
     urgencyScore: {
       type: Number,
       min: 0,
@@ -207,15 +208,13 @@ const ReportSchema = new Schema<IReport>(
     },
     sentiment: {
       score: Number,
-      label: {
-        type: String,
-        enum: ["low", "medium", "high", "critical"],
-      },
+      label: String,
     },
     entities: [
       {
         text: String,
         label: String,
+        category: String,
         confidence: Number,
       },
     ],
